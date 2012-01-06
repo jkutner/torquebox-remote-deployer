@@ -7,20 +7,20 @@ server.
 ## How to Use It
 
 First, you'll need to set up your TorqueBox application for Rake.
-Then add the gem to your `Gemfile` or run `gem install torquebox-remote-deployer`:
+Then run `gem install torquebox-remote-deployer` or add the gem to your `Gemfile`:
 
     gem "torquebox-remote-deployer"
 
-This will provide you with four new Rake tasks:
+Once the Gem is installed, you'll have a few new Rake tasks:
 
     rake torquebox:remote:deploy         # Deploy the archive file to the remot...
     rake torquebox:remote:exec[cmd]      # Execute Ruby commands against the re...
     rake torquebox:remote:stage          # Upload the archive file to the remot...
     rake torquebox:remote:undeploy       # Undeploy the archive file to the rem...
 
-Before using these tasks, you'll need to configure your remote server by creating `config/torquebox_remote.rb` file.
-This file will be similar to `config/torquebox.rb` in its format, but the allowable directives are different.  At the
-least, you'll need to configure it like this:
+Before using these, you'll need to configure your remote server by creating a `config/torquebox_remote.rb` file in your project.
+This file will be similar to `config/torquebox.rb` in its format, but the directives are different.
+You'll need to configure it like this:
 
     TorqueBox::RemoteDeploy.configure do
       torquebox_home "/home/vagrant/opt/torquebox"
@@ -30,6 +30,7 @@ least, you'll need to configure it like this:
       key "#{ENV["GEM_HOME"]}/gems/vagrant-0.8.7/keys/vagrant"
     end
 
+Of course, fill in the values with your own server information.
 Then you can stage your application on the remote server with this command:
 
     $ rake torquebox:remote:stage
