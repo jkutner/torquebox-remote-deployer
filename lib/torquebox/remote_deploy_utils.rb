@@ -1,11 +1,3 @@
-# it would be cool if we could define these in the torquebox.(rb/yml)
-# or a torquebox.remote.(rb/yml)
-TB_REMOTE_HOME = "/home/vagrant/opt/torquebox"
-TB_REMOTE_HOST = "localhost"
-TB_REMOTE_PORT = "2222"
-TB_REMOTE_USER = "vagrant"
-TB_REMOTE_SSH_KEY = "#{ENV["GEM_HOME"]}/gems/vagrant-0.8.7/keys/vagrant"
-
 require "net/ssh"
 require "net/scp"
 
