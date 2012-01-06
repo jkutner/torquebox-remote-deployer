@@ -4,24 +4,30 @@ require 'torquebox/remote_deploy_utils'
 
 namespace :torquebox do
   namespace :remote do
-    task :stage do
-      # need to make this overridable in the 
+
+    desc "Upload this application to the remote server as an archive file"
+    task :stage => ["torquebox:archive"] do
       archive_name = TorqueBox::DeployUtils.archive_name
       TorqueBox::RemoteDeployUtils.stage(archive_name)
     end
 
+    desc "Execute Ruby commands against the remote application"
     task :exec, [:cmd] do |t, args|
       cmd = args[:cmd]
       archive_name = TorqueBox::DeployUtils.archive_name
       TorqueBox::RemoteDeployUtils.exec_ruby(archive_name, cmd)
     end
 
+    desc "Deploy the archive file to the remote TorqueBox server"
     task :deploy do
-      # cp the local knob to the server's torquebox_home dir
+      archive_name = TorqueBox::DeployUtils.archive_name
+      TorqueBox::RemoteDeployUtils.deploy(archive_name)
     end
 
+    desc "Undeploy the archive file to the remote TorqueBox server"
     task :undeploy do
-      # ssh_exec remove knob
+      archive_name = TorqueBox::DeployUtils.archive_name
+      TorqueBox::RemoteDeployUtils.undeploy(archive_name)
     end
   end
 end

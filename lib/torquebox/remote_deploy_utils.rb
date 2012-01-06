@@ -1,5 +1,5 @@
 # it would be cool if we could define these in the torquebox.(rb/yml)
-# i'll add that if it's approved of
+# or a torquebox.remote.(rb/yml)
 TB_REMOTE_HOME = "/home/vagrant/opt/torquebox"
 TB_REMOTE_HOST = "localhost"
 TB_REMOTE_PORT = "2222"
@@ -14,90 +14,124 @@ module TorqueBox
     class << self
 
       def stage(archive_file)
-        with_server_config(archive_file) do |tb_home, app_name|
-          cleanup_stage(tb_home, archive_file, app_name)
-          prepare_stage(tb_home, app_name)
-          stage_archive(tb_home, archive_file)
-          unjar_staged_archive(tb_home, archive_file, app_name)
+        with_config(archive_file) do |config, app_name|
+          cleanup_stage(config, archive_file, app_name)
+          prepare_stage(config, app_name)
+          stage_archive(config, archive_file)
+          unjar_staged_archive(config, archive_file, app_name)
         end
       end
 
       def deploy(archive_file)
-        with_server_config(archive_file) do |tb_home|
-          ssh_exec("mkdir -p #{tb_home}/apps")
-          scp_upload("#{archive_file}", "#{tb_home}/apps/")
+        with_config(archive_file) do |config|
+          ssh_exec(config, "mkdir -p #{config.torquebox_home}/apps")
+          scp_upload(config, archive_file, "#{config.torquebox_home}/apps/")
         end
       end
 
       def undeploy(archive_file)
-        with_server_config(archive_file) do |tb_home|
-          ssh_exec("rm #{tb_home}/apps/#{archive_file}")
+        with_config(archive_file) do |config|
+          ssh_exec(config, "rm #{config.torquebox_home}/apps/#{archive_file}")
         end
       end
 
       def exec_ruby(archive_file, cmd)
-        with_server_config(archive_file) do |tb_home, app_name|
-          ssh_exec("cd #{tb_home}/stage/#{app_name} && #{tb_home}/jruby/bin/jruby -S #{cmd}")
+        with_config(archive_file) do |config, app_name|
+          ssh_exec(config, "cd #{config.torquebox_home}/stage/#{app_name}
+                    #{config.torquebox_home}/jruby/bin/jruby -S #{cmd}")
         end
       end
 
       private
 
       def app_name(archive_file)
-        File.basename(archive_file)
+        File.basename(archive_file, ".knob")
       end
 
-      def unjar_staged_archive(tb_home, archive_file, app_name)
-        ssh_exec("cd #{tb_home}/stage/#{app_name} && jar -xf ../#{archive_file}")
+      def unjar_staged_archive(config, archive_file, app_name)
+        ssh_exec(config, "cd #{config.torquebox_home}/stage/#{app_name} && jar -xf ../#{archive_file}")
       end
 
-      def stage_archive(tb_home, archive_file)
-        scp_upload("#{archive_file}", "#{tb_home}/stage/")
+      def stage_archive(config, archive_file)
+        scp_upload(config, archive_file, "#{config.torquebox_home}/stage/#{File.basename(archive_file)}")
       end
 
-      def cleanup_stage(tb_home, archive_file, app_name)
-        with_ssh do |ssh|
-          ssh.exec!("rm #{tb_home}/stage/#{archive_file}")
-          ssh.exec!("rm -rf #{tb_home}/stage/#{app_name}")
+      def cleanup_stage(config, archive_file, app_name)
+        with_ssh(config) do |ssh|
+          ssh.exec!("rm #{config.torquebox_home}/stage/#{archive_file}")
+          ssh.exec!("rm -rf #{config.torquebox_home}/stage/#{app_name}")
         end
       end
 
-      def prepare_stage(tb_home, app_name)
-        ssh_exec("mkdir -p #{tb_home}/stage/#{app_name}")
+      def prepare_stage(config, app_name)
+        ssh_exec(config, "mkdir -p #{config.torquebox_home}/stage/#{app_name}")
       end
 
-      def with_server_config(archive_file)
-        yield TB_REMOTE_HOME, app_name(archive_file)
+      def with_config(archive_file)
+        yield read_config, app_name(archive_file)
       end
 
-      def with_ssh_config
-        yield TB_REMOTE_HOST, TB_REMOTE_PORT, TB_REMOTE_USER, TB_REMOTE_SSH_KEY
-      end
-
-      def with_ssh
-        with_ssh_config do |host, port, user, ssh_key, tb_home|
-          Net::SSH.start(host, user, :port => port, :keys => [ssh_key]) do |ssh|
-            yield ssh
-          end
+      def with_ssh(config)
+        Net::SSH.start(config.hostname, config.user, :port => config.port, :keys => [config.key]) do |ssh|
+          yield ssh
         end
       end
 
-      def ssh_exec(cmd)
-        with_ssh do |ssh|
+      def ssh_exec(config, cmd)
+        with_ssh(config) do |ssh|
           ssh.exec(cmd)
         end
       end
 
-      def scp_upload(local_file, remote_file)
-        with_ssh_config do |host, port, user, ssh_key, tb_home|
-          Net::SCP.upload!(host, user, local_file, remote_file,
-                           :ssh => {:port => port, :keys => [ssh_key]}
-          ) do |ch, name, sent, total|
-            print "\rCopying #{name}: #{sent}/#{total}"
-          end
-          print "\n"
+      def scp_upload(config, local_file, remote_file)
+        Net::SCP.upload!(config.hostname, config.user, local_file, remote_file,
+                         :ssh => {:port => config.port, :keys => [config.key]}
+        ) do |ch, name, sent, total|
+          print "\rCopying #{name}: #{sent}/#{total}"
         end
+        print "\n"
+      end
+
+      def read_config
+        eval(File.read("config/torquebox_remote.rb")).config
       end
     end
+  end
+
+  class RemoteDeploy
+    def self.configure(&blk)
+      new(blk)
+    end
+
+    def initialize(blk)
+      @config = RemoteConfig.new
+      instance_eval &blk
+    end
+
+    attr_reader :config
+
+    def hostname(h)
+      @config.hostname = h
+    end
+
+    def port(p)
+      @config.port = p
+    end
+
+    def user(u)
+      @config.user = u
+    end
+
+    def key(k)
+      @config.key = k
+    end
+
+    def torquebox_home(tbh)
+      @config.torquebox_home = tbh
+    end
+  end
+
+  class RemoteConfig
+    attr_accessor :hostname, :port, :user, :key, :torquebox_home
   end
 end
