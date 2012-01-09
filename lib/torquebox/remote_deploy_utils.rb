@@ -15,44 +15,39 @@ module TorqueBox
       end
 
       def deploy(archive_file)
-        with_config(archive_file) do |config, *|
-          ssh_exec(config, "#{prefix(config)}mkdir -p #{config.torquebox_home}/apps")
+        with_config(archive_file) do |config, app_name|
+          ssh_exec(config, "mkdir -p #{config.torquebox_home}/apps")
           scp_upload(config, archive_file, "#{config.torquebox_home}/apps/")
+          ssh_exec(config, "touch #{config.torquebox_home}/jboss/standalone/deployments/#{app_name}.dodeploy")
         end
       end
 
       def deploy_from_stage(archive_file)
         with_config(archive_file) do |config, app_name|
-          ssh_exec(config, "#{prefix(config)}mkdir -p #{config.torquebox_home}/apps")
-          ssh_exec(config, "#{prefix(config)}cp #{config.torquebox_home}/stage/#{app_name}.knob #{config.torquebox_home}/apps")
+          ssh_exec(config, "mkdir -p #{config.torquebox_home}/apps")
+          ssh_exec(config, "cp #{config.torquebox_home}/stage/#{app_name}.knob #{config.torquebox_home}/apps")
+          ssh_exec(config, "touch #{config.torquebox_home}/jboss/standalone/deployments/#{app_name}.dodeploy")
         end
       end
 
       def undeploy(archive_file)
         with_config(archive_file) do |config, *|
-          ssh_exec(config, "#{prefix(config)}rm #{config.torquebox_home}/apps/#{archive_file}")
-        end
-      end
-
-      def exec_sh(archive_file, cmd)
-        with_config(archive_file) do |config, app_name|
-          ssh_exec(config, "cd #{config.torquebox_home}/stage/#{app_name}
-                    #{cmd}")
+          ssh_exec(config, "rm #{config.torquebox_home}/apps/#{archive_file}")
         end
       end
 
       def exec_ruby(archive_file, cmd)
         with_config(archive_file) do |config, app_name|
-          ssh_exec(config, "cd #{config.torquebox_home}/stage/#{app_name}
-                    export PATH=$PATH:#{config.torquebox_home}/jruby/bin
-                    #{prefix(config)}#{config.torquebox_home}/jruby/bin/jruby -S #{cmd}")
+          ssh_exec(config, "cd #{config.torquebox_home}/stage/#{app_name}",
+                    "export PATH=$PATH:#{config.torquebox_home}/jruby/bin",
+                    "#{config.torquebox_home}/jruby/bin/jruby -S #{cmd}")
         end
       end
 
       private
 
       def prefix(config)
-        config.sudo ? "sudo " : ""
+        config.sudo ? "sudo" : p
       end
 
       def app_name(archive_file)
@@ -68,31 +63,21 @@ module TorqueBox
       end
 
       def cleanup_stage(config, archive_file, app_name)
-        with_ssh(config) do |ssh|
-          ssh.exec!("#{prefix(config)}rm #{config.torquebox_home}/stage/#{archive_file}")
-          ssh.exec!("#{prefix(config)}rm -rf #{config.torquebox_home}/stage/#{app_name}")
-        end
+        ssh_exec(config, "rm #{config.torquebox_home}/stage/#{archive_file}")
+        ssh_exec(config, "rm -rf #{config.torquebox_home}/stage/#{app_name}")
       end
 
       def prepare_stage(config, app_name)
-        ssh_exec(config, "#{prefix(config)}mkdir -p #{config.torquebox_home}/stage/#{app_name}")
-        ssh_exec(config, "#{prefix(config)}chown #{config.user} #{config.torquebox_home}/stage")
-        ssh_exec(config, "#{prefix(config)}chown #{config.user} #{config.torquebox_home}/stage/#{app_name}")
+        ssh_exec(config, "mkdir -p #{config.torquebox_home}/stage/#{app_name}")
       end
 
       def with_config(archive_file)
         yield read_config, app_name(archive_file)
       end
 
-      def with_ssh(config)
+      def ssh_exec(config, *cmd)
         Net::SSH.start(config.hostname, config.user, :port => config.port, :keys => [config.key]) do |ssh|
-          yield ssh
-        end
-      end
-
-      def ssh_exec(config, cmd)
-        with_ssh(config) do |ssh|
-          ssh.exec(cmd)
+          ssh.exec(cmd.map{|c| "#{prefix(config)} #{c}"}.join("\n"))
         end
       end
 
