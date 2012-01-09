@@ -16,23 +16,21 @@ module TorqueBox
 
       def deploy(archive_file)
         with_config(archive_file) do |config, app_name|
-          ssh_exec(config, "mkdir -p #{config.torquebox_home}/apps")
-          scp_upload(config, archive_file, "#{config.torquebox_home}/apps/")
+          scp_upload(config, archive_file, "#{config.torquebox_home}/jboss/standalone/deployments/")
           ssh_exec(config, "touch #{config.torquebox_home}/jboss/standalone/deployments/#{app_name}.dodeploy")
         end
       end
 
       def deploy_from_stage(archive_file)
         with_config(archive_file) do |config, app_name|
-          ssh_exec(config, "mkdir -p #{config.torquebox_home}/apps")
-          ssh_exec(config, "cp #{config.torquebox_home}/stage/#{app_name}.knob #{config.torquebox_home}/apps")
+          ssh_exec(config, "cp #{config.torquebox_home}/stage/#{app_name}.knob #{config.torquebox_home}/jboss/standalone/deployments")
           ssh_exec(config, "touch #{config.torquebox_home}/jboss/standalone/deployments/#{app_name}.dodeploy")
         end
       end
 
       def undeploy(archive_file)
-        with_config(archive_file) do |config, *|
-          ssh_exec(config, "rm #{config.torquebox_home}/apps/#{archive_file}")
+        with_config(archive_file) do |config, app_name|
+          ssh_exec(config, "rm #{config.torquebox_home}/jboss/standalone/deployments/#{app_name}.*")
         end
       end
 
