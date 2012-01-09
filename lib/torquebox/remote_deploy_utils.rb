@@ -15,14 +15,21 @@ module TorqueBox
       end
 
       def deploy(archive_file)
-        with_config(archive_file) do |config|
+        with_config(archive_file) do |config, *|
           ssh_exec(config, "#{prefix(config)}mkdir -p #{config.torquebox_home}/apps")
           scp_upload(config, archive_file, "#{config.torquebox_home}/apps/")
         end
       end
 
+      def deploy_from_stage(archive_file)
+        with_config(archive_file) do |config, app_name|
+          ssh_exec(config, "#{prefix(config)}mkdir -p #{config.torquebox_home}/apps")
+          ssh_exec(config, "#{prefix(config)}cp #{config.torquebox_home}/stage/#{app_name}.knob #{config.torquebox_home}/apps")
+        end
+      end
+
       def undeploy(archive_file)
-        with_config(archive_file) do |config|
+        with_config(archive_file) do |config, *|
           ssh_exec(config, "#{prefix(config)}rm #{config.torquebox_home}/apps/#{archive_file}")
         end
       end
