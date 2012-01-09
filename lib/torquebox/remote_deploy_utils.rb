@@ -16,28 +16,36 @@ module TorqueBox
 
       def deploy(archive_file)
         with_config(archive_file) do |config|
-          ssh_exec(config, "#{prefix(config)} mkdir -p #{config.torquebox_home}/apps")
+          ssh_exec(config, "#{prefix(config)}mkdir -p #{config.torquebox_home}/apps")
           scp_upload(config, archive_file, "#{config.torquebox_home}/apps/")
         end
       end
 
       def undeploy(archive_file)
         with_config(archive_file) do |config|
-          ssh_exec(config, "#{prefix(config)} rm #{config.torquebox_home}/apps/#{archive_file}")
+          ssh_exec(config, "#{prefix(config)}rm #{config.torquebox_home}/apps/#{archive_file}")
+        end
+      end
+
+      def exec_sh(archive_file, cmd)
+        with_config(archive_file) do |config, app_name|
+          ssh_exec(config, "cd #{config.torquebox_home}/stage/#{app_name}
+                    #{cmd}")
         end
       end
 
       def exec_ruby(archive_file, cmd)
         with_config(archive_file) do |config, app_name|
           ssh_exec(config, "cd #{config.torquebox_home}/stage/#{app_name}
-                    #{prefix(config)} #{config.torquebox_home}/jruby/bin/jruby -S #{cmd}")
+                    export PATH=$PATH:#{config.torquebox_home}/jruby/bin
+                    #{prefix(config)}#{config.torquebox_home}/jruby/bin/jruby -S #{cmd}")
         end
       end
 
       private
 
       def prefix(config)
-        config.sudo ? "sudo" : ""
+        config.sudo ? "sudo " : ""
       end
 
       def app_name(archive_file)
@@ -45,7 +53,7 @@ module TorqueBox
       end
 
       def unjar_staged_archive(config, archive_file, app_name)
-        ssh_exec(config, "cd #{config.torquebox_home}/stage/#{app_name} && #{prefix(config)} jar -xf ../#{archive_file}")
+        ssh_exec(config, "cd #{config.torquebox_home}/stage/#{app_name} && #{prefix(config)}jar -xf ../#{archive_file}")
       end
 
       def stage_archive(config, archive_file)
@@ -54,15 +62,15 @@ module TorqueBox
 
       def cleanup_stage(config, archive_file, app_name)
         with_ssh(config) do |ssh|
-          ssh.exec!("#{prefix(config)} rm #{config.torquebox_home}/stage/#{archive_file}")
-          ssh.exec!("#{prefix(config)} rm -rf #{config.torquebox_home}/stage/#{app_name}")
+          ssh.exec!("#{prefix(config)}rm #{config.torquebox_home}/stage/#{archive_file}")
+          ssh.exec!("#{prefix(config)}rm -rf #{config.torquebox_home}/stage/#{app_name}")
         end
       end
 
       def prepare_stage(config, app_name)
-        ssh_exec(config, "#{prefix(config)} mkdir -p #{config.torquebox_home}/stage/#{app_name}")
-        ssh_exec(config, "#{prefix(config)} chown #{config.user} #{config.torquebox_home}/stage")
-        ssh_exec(config, "#{prefix(config)} chown #{config.user} #{config.torquebox_home}/stage/#{app_name}")
+        ssh_exec(config, "#{prefix(config)}mkdir -p #{config.torquebox_home}/stage/#{app_name}")
+        ssh_exec(config, "#{prefix(config)}chown #{config.user} #{config.torquebox_home}/stage")
+        ssh_exec(config, "#{prefix(config)}chown #{config.user} #{config.torquebox_home}/stage/#{app_name}")
       end
 
       def with_config(archive_file)
