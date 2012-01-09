@@ -17,20 +17,20 @@ module TorqueBox
       def deploy(archive_file)
         with_config(archive_file) do |config, app_name|
           scp_upload(config, archive_file, "#{config.torquebox_home}/jboss/standalone/deployments/")
-          ssh_exec(config, "touch #{config.torquebox_home}/jboss/standalone/deployments/#{app_name}.dodeploy")
+          do_deploy(config, app_name)
         end
       end
 
       def deploy_from_stage(archive_file)
         with_config(archive_file) do |config, app_name|
           ssh_exec(config, "cp #{config.torquebox_home}/stage/#{app_name}.knob #{config.torquebox_home}/jboss/standalone/deployments")
-          ssh_exec(config, "touch #{config.torquebox_home}/jboss/standalone/deployments/#{app_name}.dodeploy")
+          do_deploy(config, app_name)
         end
       end
 
       def undeploy(archive_file)
         with_config(archive_file) do |config, app_name|
-          ssh_exec(config, "rm #{config.torquebox_home}/jboss/standalone/deployments/#{app_name}.*")
+          ssh_exec(config, "rm -f #{config.torquebox_home}/jboss/standalone/deployments/#{app_name}.knob*")
         end
       end
 
@@ -46,6 +46,10 @@ module TorqueBox
 
       def prefix(config)
         config.sudo ? "sudo" : p
+      end
+
+      def do_deploy(config, app_name)
+        ssh_exec(config, "touch #{config.torquebox_home}/jboss/standalone/deployments/#{app_name}.knob.dodeploy")
       end
 
       def app_name(archive_file)
