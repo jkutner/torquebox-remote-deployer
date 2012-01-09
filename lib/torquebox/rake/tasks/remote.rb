@@ -30,6 +30,12 @@ namespace :torquebox do
         archive_name = TorqueBox::DeployUtils.archive_name
         TorqueBox::RemoteDeployUtils.deploy_from_stage(archive_name)
       end
+
+      desc "Verify that the archive file made it here intact"
+      task :check do
+        archive_name = TorqueBox::DeployUtils.archive_name
+        # TODO: checksum local and on server
+      end
     end
 
     desc "Undeploy the archive file to the remote TorqueBox server"
