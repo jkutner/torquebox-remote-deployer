@@ -135,5 +135,11 @@ module TorqueBox
 
   class RemoteConfig
     attr_accessor :hostname, :port, :user, :key, :torquebox_home, :sudo
+
+    def initialize
+      @user = "torquebox"
+      @torquebox_home = "/opt/torquebox"
+      @sudo = false
+    end
   end
 end
