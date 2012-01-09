@@ -23,11 +23,12 @@ This file will be similar to `config/torquebox.rb` in its format, but the direct
 You'll need to configure it like this:
 
     TorqueBox::RemoteDeploy.configure do
-      torquebox_home "/home/vagrant/opt/torquebox"
+      torquebox_home "/opt/torquebox"
       hostname "localhost"
       port "2222"
       user "vagrant"
       key "#{ENV["GEM_HOME"]}/gems/vagrant-0.8.7/keys/vagrant"
+      sudo true
     end
 
 Of course, fill in the values with your own server information.
