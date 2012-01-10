@@ -65,7 +65,7 @@ module TorqueBox
       end
 
       def cleanup_stage(config, archive_file, app_name)
-        ssh_exec(config, "rm #{config.torquebox_home}/stage/#{archive_file}")
+        ssh_exec(config, "rm -f #{config.torquebox_home}/stage/#{archive_file}")
         ssh_exec(config, "rm -rf #{config.torquebox_home}/stage/#{app_name}")
       end
 
