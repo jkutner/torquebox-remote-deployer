@@ -37,8 +37,8 @@ module TorqueBox
       def exec_ruby(archive_file, cmd)
         with_config(archive_file) do |config, app_name|
           ssh_exec(config, "cd #{config.torquebox_home}/stage/#{app_name}",
-                    "export PATH=$PATH:#{config.torquebox_home}/jruby/bin",
-                    "#{config.torquebox_home}/jruby/bin/jruby -S #{cmd}")
+                   "export PATH=$PATH:#{config.torquebox_home}/jruby/bin",
+                   "#{config.torquebox_home}/jruby/bin/jruby -S #{cmd}")
         end
       end
 
@@ -79,7 +79,7 @@ module TorqueBox
 
       def ssh_exec(config, *cmd)
         Net::SSH.start(config.hostname, config.user, :port => config.port, :keys => [config.key]) do |ssh|
-          ssh.exec(cmd.map{|c| "#{prefix(config)} #{c}"}.join("\n"))
+          ssh.exec(cmd.map { |c| "#{prefix(config)} #{c}" }.join("\n"))
         end
       end
 
