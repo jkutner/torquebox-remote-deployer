@@ -7,10 +7,13 @@ module TorqueBox
 
       def stage(archive_file)
         with_config(archive_file) do |config, app_name|
-          cleanup_stage(config, archive_file, app_name)
-          prepare_stage(config, app_name)
-          stage_archive(config, archive_file)
-          unjar_staged_archive(config, archive_file, app_name)
+          # no need to stage if we are local. we'll just run from the app dir
+          unless config.local
+            cleanup_stage(config, archive_file, app_name)
+            prepare_stage(config, app_name)
+            stage_archive(config, archive_file)
+            unjar_staged_archive(config, archive_file, app_name)
+          end
         end
       end
 
@@ -30,15 +33,23 @@ module TorqueBox
 
       def undeploy(archive_file)
         with_config(archive_file) do |config, app_name|
-          ssh_exec(config, "rm -f #{config.jboss}/standalone/deployments/#{app_name}.knob*")
+          unless config.local
+            ssh_exec(config, "rm -f #{config.jboss_home}/standalone/deployments/#{app_name}.knob*")
+          else
+            FileUtils.rm("#{config.jboss_home}/standalone/deployments/#{app_name}.knob*")
+          end
         end
       end
 
       def exec_ruby(archive_file, cmd)
         with_config(archive_file) do |config, app_name|
-          ssh_exec(config, "cd #{config.torquebox_home}/stage/#{app_name}",
-                   "export PATH=$PATH:#{config.torquebox_home}/jruby/bin",
-                   "#{config.torquebox_home}/jruby/bin/jruby -S #{cmd}")
+          unless config.local
+            ssh_exec(config, "cd #{config.torquebox_home}/stage/#{app_name}",
+                     "export PATH=$PATH:#{config.torquebox_home}/jruby/bin",
+                     "#{config.torquebox_home}/jruby/bin/jruby -S #{cmd}")
+          else
+            # not sure what to do here yet
+          end
         end
       end
 
@@ -49,7 +60,11 @@ module TorqueBox
       end
 
       def do_deploy(config, app_name)
-        ssh_exec(config, "touch #{config.jboss_home}/standalone/deployments/#{app_name}.knob.dodeploy")
+        unless config.local
+          ssh_exec(config, "touch #{config.jboss_home}/standalone/deployments/#{app_name}.knob.dodeploy")
+        else
+          File.open("#{config.jboss_home}/standalone/deployments/#{app_name}.knob.dodeploy", "w") {}
+        end
       end
 
       def app_name(archive_file)
@@ -70,7 +85,11 @@ module TorqueBox
       end
 
       def prepare_stage(config, app_name)
-        ssh_exec(config, "mkdir -p #{config.torquebox_home}/stage/#{app_name}")
+        unless config.local
+          ssh_exec(config, "mkdir -p #{config.torquebox_home}/stage/#{app_name}")
+        else
+          FileUtils.mkdir_p("#{config.torquebox_home}/stage/#{app_name}")
+        end
       end
 
       def with_config(archive_file)
@@ -86,12 +105,16 @@ module TorqueBox
       end
 
       def scp_upload(config, local_file, remote_file)
-        Net::SCP.upload!(config.hostname, config.user, local_file, remote_file,
-                         :ssh => {:port => config.port, :keys => [config.key]}
-        ) do |ch, name, sent, total|
-          print "\rCopying #{name}: #{sent}/#{total}"
+        unless config.local
+          Net::SCP.upload!(config.hostname, config.user, local_file, remote_file,
+                           :ssh => {:port => config.port, :keys => [config.key]}
+          ) do |ch, name, sent, total|
+            print "\rCopying #{name}: #{sent}/#{total}"
+          end
+          print "\n"
+        else
+          FileUtils.cp(local_file, remote_file)
         end
-        print "\n"
       end
 
       def read_config
@@ -147,19 +170,31 @@ module TorqueBox
       @config.sudo = sudo
     end
 
+    def local(l)
+      @config.local = l
+    end
+
     def host(&block)
       @configs << RemoteDeploy.new(block).config
     end
   end
 
   class RemoteConfig
-    attr_accessor :hostname, :port, :user, :key, :torquebox_home, :jboss_home, :sudo
+    attr_accessor :hostname, :port, :user, :key, :torquebox_home, :sudo, :local
+
+    def jboss_home=(jbh)
+      @jboss_home = jbh
+    end
+
+    def jboss_home
+      @jboss_home || "#{@torquebox_home}/jboss"
+    end
 
     def initialize
       @user = "torquebox"
       @torquebox_home = "/opt/torquebox"
-      @jboss_home = "#{@torquebox_home}/jboss"
       @sudo = false
+      @local = false
     end
   end
 end

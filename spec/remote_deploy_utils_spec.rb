@@ -21,5 +21,35 @@ describe TorqueBox::RemoteDeployUtils do
       @util.should_receive(:scp_upload).with(anything(), "myapp.knob", "/opt/torquebox/stage/myapp.knob")
       @util.stage("myapp.knob")
     end
+
+    context "local" do
+      it "stages" do
+        ENV["config_file"] = File.join(File.dirname(__FILE__), "fixtures/local_torquebox_remote.rb")
+        @util.stage("myapp.knob")  # does nothing
+      end
+    end
+  end
+
+  describe ".deploy" do
+    context "local" do
+      before do
+        FileUtils.mkdir_p(deploy_dir)
+      end
+
+      after do
+        FileUtils.remove_dir("#{File.dirname(__FILE__)}/../tmp/torquebox", true)
+      end
+
+      it "deploys" do
+        ENV["config_file"] = File.join(File.dirname(__FILE__), "fixtures/local_torquebox_remote.rb")
+        @util.deploy(File.join(File.dirname(__FILE__), "fixtures/myapp.knob"))
+        File.exists?("#{deploy_dir}/myapp.knob").should == true
+        File.exists?("#{deploy_dir}/myapp.knob.dodeploy").should == true
+      end
+
+      def deploy_dir
+        "#{File.dirname(__FILE__)}/../tmp/torquebox/jboss/standalone/deployments/"
+      end
+    end
   end
 end
