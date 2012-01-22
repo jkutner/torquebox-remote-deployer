@@ -26,7 +26,11 @@ module TorqueBox
 
       def deploy_from_stage(archive_file)
         with_config(archive_file) do |config, app_name|
-          ssh_exec(config, "cp #{config.torquebox_home}/stage/#{app_name}.knob #{config.jboss_home}/standalone/deployments")
+          unless config.local
+            ssh_exec(config, "cp #{config.torquebox_home}/stage/#{app_name}.knob #{config.jboss_home}/standalone/deployments")
+          else
+            scp_upload(config, archive_file, "#{config.jboss_home}/standalone/deployments/")
+          end
           do_deploy(config, app_name)
         end
       end
