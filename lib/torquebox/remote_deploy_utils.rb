@@ -16,21 +16,21 @@ module TorqueBox
 
       def deploy(archive_file)
         with_config(archive_file) do |config, app_name|
-          scp_upload(config, archive_file, "#{config.torquebox_home}/jboss/standalone/deployments/")
+          scp_upload(config, archive_file, "#{config.jboss_home}/standalone/deployments/")
           do_deploy(config, app_name)
         end
       end
 
       def deploy_from_stage(archive_file)
         with_config(archive_file) do |config, app_name|
-          ssh_exec(config, "cp #{config.torquebox_home}/stage/#{app_name}.knob #{config.torquebox_home}/jboss/standalone/deployments")
+          ssh_exec(config, "cp #{config.torquebox_home}/stage/#{app_name}.knob #{config.jboss_home}/standalone/deployments")
           do_deploy(config, app_name)
         end
       end
 
       def undeploy(archive_file)
         with_config(archive_file) do |config, app_name|
-          ssh_exec(config, "rm -f #{config.torquebox_home}/jboss/standalone/deployments/#{app_name}.knob*")
+          ssh_exec(config, "rm -f #{config.jboss}/standalone/deployments/#{app_name}.knob*")
         end
       end
 
@@ -49,7 +49,7 @@ module TorqueBox
       end
 
       def do_deploy(config, app_name)
-        ssh_exec(config, "touch #{config.torquebox_home}/jboss/standalone/deployments/#{app_name}.knob.dodeploy")
+        ssh_exec(config, "touch #{config.jboss_home}/standalone/deployments/#{app_name}.knob.dodeploy")
       end
 
       def app_name(archive_file)
@@ -74,7 +74,9 @@ module TorqueBox
       end
 
       def with_config(archive_file)
-        yield read_config, app_name(archive_file)
+        read_config.each do |config|
+          yield config, app_name(archive_file)
+        end
       end
 
       def ssh_exec(config, *cmd)
@@ -93,7 +95,8 @@ module TorqueBox
       end
 
       def read_config
-        eval(File.read("config/torquebox_remote.rb")).config
+        config_file = ENV["CONFIG_FILE"] || ENV["config_file"] || "config/torquebox_remote.rb"
+        eval(File.read(config_file)).configurations
       end
     end
   end
@@ -105,10 +108,16 @@ module TorqueBox
 
     def initialize(blk)
       @config = RemoteConfig.new
+      @configs = []
       instance_eval &blk
     end
 
     attr_reader :config
+
+    def configurations
+      # evenually, we should merge the base @config settings into the @configs
+      @configs.empty? ? [@config] : @configs
+    end
 
     def hostname(h)
       @config.hostname = h
@@ -130,17 +139,26 @@ module TorqueBox
       @config.torquebox_home = tbh
     end
 
+    def jboss_home(jbh)
+      @config.jboss_home = jbh
+    end
+
     def sudo(sudo)
       @config.sudo = sudo
+    end
+
+    def host(&block)
+      @configs << RemoteDeploy.new(block).config
     end
   end
 
   class RemoteConfig
-    attr_accessor :hostname, :port, :user, :key, :torquebox_home, :sudo
+    attr_accessor :hostname, :port, :user, :key, :torquebox_home, :jboss_home, :sudo
 
     def initialize
       @user = "torquebox"
       @torquebox_home = "/opt/torquebox"
+      @jboss_home = "#{@torquebox_home}/jboss"
       @sudo = false
     end
   end
