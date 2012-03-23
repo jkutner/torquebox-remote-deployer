@@ -81,6 +81,7 @@ module TorqueBox
         unless config.local
           knob_yml_file = Tempfile.new("#{app_name}-knob.yml")
           knob_yml_file.write(knob_yml)
+          knob_yml_file.rewind
           scp_upload(config, knob_yml_file.path, "#{config.jboss_home}/standalone/deployments/#{app_name}-knob.yml")
           ssh_exec(config, "touch #{config.jboss_home}/standalone/deployments/#{app_name}-knob.yml.dodeploy")
         else
