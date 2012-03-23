@@ -75,10 +75,11 @@ module TorqueBox
           environment:
             RAILS_ENV: production
         YAML
-        knob_yml_file = Tempfile.new("#{app_name}-knob.yml")
-        knob_yml_file.write(knob_yml)
 
         unless config.local
+          knob_yml_file = Tempfile.new("#{app_name}-knob.yml")
+          knob_yml_file.write(knob_yml)
+          puts "tempfile : #{knob_yml_file.path}"
           scp_upload(config, knob_yml_file.path, "#{config.jboss_home}/standalone/deployments/")
           ssh_exec(config, "touch #{config.jboss_home}/standalone/deployments/#{app_name}-knob.yml.dodeploy")
         else
