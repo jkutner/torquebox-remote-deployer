@@ -55,6 +55,7 @@ module TorqueBox
             ssh_exec(config, "cd #{config.torquebox_home}/stage/#{app_name}",
                      "export PATH=$PATH:#{config.torquebox_home}/jruby/bin",
                      "export RAILS_ENV=production",
+                     "export RACK_ENV=production",
                      "#{config.torquebox_home}/jruby/bin/jruby -S #{cmd}")
           else
             # not sure what to do here yet
@@ -75,6 +76,7 @@ module TorqueBox
         application:
           root: #{config.jboss_home}/standalone/deployments/#{app_name}.knob
         environment:
+          RACK_ENV: production
           RAILS_ENV: production
         YAML
 
