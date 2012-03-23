@@ -71,12 +71,12 @@ module TorqueBox
       def do_deploy(config, app_name)
         # TODO create a -knob.yml that points to knob file
         # TODO set RAILS_ENV based on env var, and default to production
-        knob_yml = <<-YAML
-          application:
-            root: #{config.jboss_home}/standalone/deployments/#{app_name}-knob.yml
-          environment:
-            RAILS_ENV: production
-        YAML
+        knob_yml = <<YAML
+application:
+  root: #{config.jboss_home}/standalone/deployments/#{app_name}-knob.yml
+environment:
+  RAILS_ENV: production
+YAML
 
         unless config.local
           knob_yml_file = Tempfile.new("#{app_name}-knob.yml")
