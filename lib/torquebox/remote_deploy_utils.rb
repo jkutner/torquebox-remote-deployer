@@ -40,9 +40,11 @@ module TorqueBox
       def undeploy(archive_file)
         with_config(archive_file) do |config, app_name|
           unless config.local
-            ssh_exec(config, "rm -f #{config.jboss_home}/standalone/deployments/#{app_name}.knob*")
+            ssh_exec(config, "rm -f #{config.jboss_home}/standalone/deployments/#{app_name}-knob.yml*")
+            ssh_exec(config, "rm -f #{config.jboss_home}/standalone/deployments/#{app_name}.knob")
           else
-            FileUtils.rm("#{config.jboss_home}/standalone/deployments/#{app_name}.knob*")
+            FileUtils.rm("#{config.jboss_home}/standalone/deployments/#{app_name}-knob.yml*")
+            FileUtils.rm("#{config.jboss_home}/standalone/deployments/#{app_name}.knob")
           end
         end
       end
@@ -79,8 +81,7 @@ module TorqueBox
         unless config.local
           knob_yml_file = Tempfile.new("#{app_name}-knob.yml")
           knob_yml_file.write(knob_yml)
-          puts "tempfile : #{knob_yml_file.path}"
-          scp_upload(config, knob_yml_file.path, "#{config.jboss_home}/standalone/deployments/")
+          scp_upload(config, knob_yml_file.path, "#{config.jboss_home}/standalone/deployments/#{app_name}-knob.yml")
           ssh_exec(config, "touch #{config.jboss_home}/standalone/deployments/#{app_name}-knob.yml.dodeploy")
         else
           # todo copy temp file to somewhere
