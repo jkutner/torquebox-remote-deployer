@@ -22,19 +22,6 @@ module TorqueBox
       def deploy(archive_file)
         with_config(archive_file) do |config, app_name|
           scp_upload(config, archive_file, "#{config.jboss_home}/standalone/deployments/")
-
-          # TODO create a -knob.yml that points to knob file
-          # TODO set RAILS_ENV based on env var, and default to production
-          knob_yml = <<-YAML
-            application:
-              root: #{config.jboss_home}/standalone/deployments/#{app_name}-knob.yml
-            environment:
-              RAILS_ENV: production
-          YAML
-          knob_yml_file = Tempfile.new("#{app_name}-knob.yml")
-          knob_yml_file.write(knob_yml)
-          scp_upload(config, knob_yml_file, "#{config.jboss_home}/standalone/deployments/")
-
           do_deploy(config, app_name)
         end
       end
@@ -80,9 +67,22 @@ module TorqueBox
       end
 
       def do_deploy(config, app_name)
+        # TODO create a -knob.yml that points to knob file
+        # TODO set RAILS_ENV based on env var, and default to production
+        knob_yml = <<-YAML
+          application:
+            root: #{config.jboss_home}/standalone/deployments/#{app_name}-knob.yml
+          environment:
+            RAILS_ENV: production
+        YAML
+        knob_yml_file = Tempfile.new("#{app_name}-knob.yml")
+        knob_yml_file.write(knob_yml)
+
         unless config.local
+          scp_upload(config, knob_yml_file.path, "#{config.jboss_home}/standalone/deployments/")
           ssh_exec(config, "touch #{config.jboss_home}/standalone/deployments/#{app_name}-knob.yml.dodeploy")
         else
+          # todo copy temp file to somewhere
           File.open("#{config.jboss_home}/standalone/deployments/#{app_name}-knob.yml.dodeploy", "w") {}
         end
       end
