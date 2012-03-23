@@ -65,6 +65,7 @@ module TorqueBox
           unless config.local
             ssh_exec(config, "cd #{config.torquebox_home}/stage/#{app_name}",
                      "export PATH=$PATH:#{config.torquebox_home}/jruby/bin",
+                     "export RAILS_ENV=production",
                      "#{config.torquebox_home}/jruby/bin/jruby -S #{cmd}")
           else
             # not sure what to do here yet
