@@ -52,6 +52,7 @@ module TorqueBox
       def exec_ruby(archive_file, cmd)
         with_config(archive_file) do |config, app_name|
           unless config.local
+            # TODO set RACK_ENV based on env var, and default to production
             ssh_exec(config, "cd #{config.torquebox_home}/stage/#{app_name}",
                      "export PATH=$PATH:#{config.torquebox_home}/jruby/bin",
                      "export RAILS_ENV=production",
@@ -70,8 +71,7 @@ module TorqueBox
       end
 
       def do_deploy(config, app_name)
-        # TODO create a -knob.yml that points to knob file
-        # TODO set RAILS_ENV based on env var, and default to production
+        # TODO set RACK_ENV based on env var, and default to production
         knob_yml = <<-YAML
         application:
           root: #{config.jboss_home}/standalone/deployments/#{app_name}.knob
