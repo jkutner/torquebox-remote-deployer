@@ -43,9 +43,9 @@ its root directory; like this:
 
     $ rake torquebox:remote:exec["bundle install --path vendor/bundle"]
 
-Now you can to do more useful things like running migrations:
+Or if you ran `bundle --deployment` before creating your Knob you can just jump right in and run something more useful like your migrations:
 
-    $ rake torquebox:remote:exec["rake db:migrate RAILS_ENV=production"]
+    $ rake torquebox:remote:exec["bundle exec rake db:migrate"]
 
 After the `exec` tasks are complete, you can deploy the Knob to the TorqueBox server.
 
