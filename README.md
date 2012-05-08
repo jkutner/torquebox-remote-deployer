@@ -65,12 +65,12 @@ The `torquebox-remote-deployer` gem defaults to production mode, so all the exam
       key "~/.vagrant.d/insecure_private_key"
 
       # set the RAILS_ENV on the remote server
-      rails_env "staging"
+      rails_env "test"
     end
 
 Then you can deploy with the `TB_REMOTE_FILE` environment variable set like this:
 
-    $ TB_REMOTE_FILE=config/torquebox_remote.staging.rb rake torquebox:remote:stage
+    $ TB_REMOTE_FILE=config/torquebox_remote.test.rb rake torquebox:remote:stage
 
 You can name the config file whatever you'd like, and you can have one per environment -- but use the same Rake tasks.
 
