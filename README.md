@@ -29,7 +29,7 @@ You'll need to configure it like this:
       hostname "localhost"
       port "2222"
       user "vagrant"
-      key "#{ENV["GEM_HOME"]}/gems/vagrant-0.8.7/keys/vagrant"
+      key "~/.vagrant.d/insecure_private_key"
       sudo true
     end
 
@@ -53,8 +53,29 @@ After the `exec` tasks are complete, you can deploy the Knob to the TorqueBox se
 
 This task works just like the `torquebox:deploy:archive` task, but remotely.
 
+## Deploying to Multiple Environments
+
+The `torquebox-remote-deployer` gem defaults to production mode, so all the examples shown above will execute with your `production` Bundler group and db config.  But it's most likely that you will want to deploy to a staging or test environment before deploying to production.  In that case, you'll need a config file for each one.  In each config file, you can specify the RACK_ENV or RAILS_ENV like this:
+
+    TorqueBox::RemoteDeploy.configure do
+      torquebox_home "/opt/torquebox"
+      hostname "localhost"
+      port "2222"
+      user "vagrant"
+      key "~/.vagrant.d/insecure_private_key"
+
+      # set the RAILS_ENV on the remote server
+      rails_env "staging"
+    end
+
+Then you can deploy with the `TB_REMOTE_FILE` environment variable set like this:
+
+    $ export TB_REMOTE_FILE=config/torquebox_remote.staging.rb 
+    $ rake torquebox:remote:stage
+
+You can name the config file whatever you'd like, and you can have one per environment -- but use the same Rake tasks.
+
 ## TODO
 
 *  Make it friendly to remote Windows targets (already works on Windows source machines).
-*  Support deploying to mutliple servers (config would look like multi-hosts in a Vagrantfile)
 *  Support deploying over FTP or SFTP in addition to SCP/SSH.

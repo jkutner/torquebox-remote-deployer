@@ -52,11 +52,10 @@ module TorqueBox
       def exec_ruby(archive_file, cmd)
         with_config(archive_file) do |config, app_name|
           unless config.local
-            # TODO set RACK_ENV based on env var, and default to production
             ssh_exec(config, "cd #{config.torquebox_home}/stage/#{app_name}",
                      "export PATH=$PATH:#{config.torquebox_home}/jruby/bin",
-                     "export RAILS_ENV=production",
-                     "export RACK_ENV=production",
+                     "export RAILS_ENV=#{config.rack_env}",
+                     "export RACK_ENV=#{config.rack_env}",
                      "#{config.torquebox_home}/jruby/bin/jruby -S #{cmd}")
           else
             # not sure what to do here yet
@@ -71,13 +70,12 @@ module TorqueBox
       end
 
       def do_deploy(config, app_name)
-        # TODO set RACK_ENV based on env var, and default to production
         knob_yml = <<-YAML
         application:
           root: #{config.jboss_home}/standalone/deployments/#{app_name}.knob
         environment:
-          RACK_ENV: production
-          RAILS_ENV: production
+          RACK_ENV: #{config.rack_env}
+          RAILS_ENV: #{config.rack_env}
         YAML
 
         unless config.local
@@ -88,6 +86,7 @@ module TorqueBox
           ssh_exec(config, "touch #{config.jboss_home}/standalone/deployments/#{app_name}-knob.yml.dodeploy")
         else
           # todo copy temp file to somewhere
+          File.open("#{config.jboss_home}/standalone/deployments/#{app_name}-knob.yml", "w") {}
           File.open("#{config.jboss_home}/standalone/deployments/#{app_name}-knob.yml.dodeploy", "w") {}
         end
       end
@@ -143,7 +142,7 @@ module TorqueBox
       end
 
       def read_config
-        config_file = ENV["CONFIG_FILE"] || ENV["config_file"] || "config/torquebox_remote.rb"
+        config_file = ENV["TB_REMOTE_FILE"] || ENV["tb_remote_file"] || "config/torquebox_remote.rb"
         eval(File.read(config_file)).configurations
       end
     end
@@ -202,10 +201,26 @@ module TorqueBox
     def host(&block)
       @configs << RemoteDeploy.new(block).config
     end
+
+    def rails_env(env)
+      @config.rack_env = env
+    end
+
+    def rack_env(env)
+      @config.rack_env = env
+    end
   end
 
   class RemoteConfig
     attr_accessor :hostname, :port, :user, :key, :torquebox_home, :sudo, :local
+
+    def rack_env=(env)
+      @rack_env = env
+    end
+
+    def rack_env
+      @rack_env || "production"
+    end
 
     def jboss_home=(jbh)
       @jboss_home = jbh
