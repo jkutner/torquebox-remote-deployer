@@ -123,8 +123,12 @@ module TorqueBox
       end
 
       def ssh_exec(config, *cmd)
-        Net::SSH.start(config.hostname, config.user, :port => config.port, :keys => [config.key]) do |ssh|
-          ssh.exec(cmd.map { |c| "#{prefix(config)} #{c}" }.join("\n"))
+        begin
+          Net::SSH.start(config.hostname, config.user, :port => config.port, :keys => [config.key]) do |ssh|
+            ssh.exec(cmd.map { |c| "#{prefix(config)} #{c}" }.join("\n"))
+          end
+        rescue Net::SSH::AuthenticationFailed => e
+          raise "Can't authenticate as #{config.user}@#{config.hostname}:#{config.port}."
         end
       end
 
