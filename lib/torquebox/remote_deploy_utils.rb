@@ -76,6 +76,8 @@ module TorqueBox
         environment:
           RACK_ENV: #{config.rack_env}
           RAILS_ENV: #{config.rack_env}
+        ruby:
+          version: 1.9
         YAML
 
         unless config.local
