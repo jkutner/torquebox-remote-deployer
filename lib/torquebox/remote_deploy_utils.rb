@@ -56,6 +56,7 @@ module TorqueBox
                      "export PATH=$PATH:#{config.torquebox_home}/jruby/bin",
                      "export RAILS_ENV=#{config.rack_env}",
                      "export RACK_ENV=#{config.rack_env}",
+                     "export JRUBY_OPTS=\"--1.9\"",
                      "#{config.torquebox_home}/jruby/bin/jruby -S #{cmd}")
           else
             # not sure what to do here yet
