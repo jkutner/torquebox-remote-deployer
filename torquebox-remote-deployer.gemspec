@@ -23,4 +23,6 @@ Gem::Specification.new do |s|
   s.add_dependency "net-scp"
   s.add_dependency "rake"
   s.add_dependency "torquebox-rake-support"
+
+  s.add_development_dependency "rspec"
 end
