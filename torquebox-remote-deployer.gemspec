@@ -4,7 +4,7 @@ $:.push File.expand_path("../lib", __FILE__)
 Gem::Specification.new do |s|
   s.name        = "torquebox-remote-deployer"
   s.version     = "0.1.2.pre2"
-  s.platform    = Gem::Platform::JAVA
+  s.platform    = "java"
   s.authors     = ["Joe Kutner"]
   s.email       = ["jpkutner@gmail.com"]
   s.homepage    = "https://github.com/jkutner/torquebox-remote-deployer"
