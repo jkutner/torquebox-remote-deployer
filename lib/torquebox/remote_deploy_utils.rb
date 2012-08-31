@@ -53,10 +53,10 @@ module TorqueBox
         with_config(archive_file) do |config, app_name|
           unless config.local
             ssh_exec(config, "cd #{config.torquebox_home}/stage/#{app_name}",
-                     "export PATH=$PATH:#{config.torquebox_home}/jruby/bin",
+                     "export PATH=#{config.torquebox_home}/jruby/bin:$PATH",
                      "export RAILS_ENV=#{config.rack_env}",
                      "export RACK_ENV=#{config.rack_env}",
-                     "export JRUBY_OPTS=\"--1.9\"",
+                     "export JRUBY_OPTS=--1.9",
                      "#{config.torquebox_home}/jruby/bin/jruby -S #{cmd}")
           else
             # not sure what to do here yet
