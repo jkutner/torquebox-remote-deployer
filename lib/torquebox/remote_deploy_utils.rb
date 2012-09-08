@@ -64,7 +64,7 @@ module TorqueBox
       end
 
       def archive_name
-        TorqueBox::DeployUtils.normalize_archive_name(ENV['name'] || TorqueBox::DeployUtils.archive_name)
+        TorqueBox::DeployUtils.normalize_archive_name(ENV['NAME'] || ENV['name'] || TorqueBox::DeployUtils.archive_name)
       end
 
       private
