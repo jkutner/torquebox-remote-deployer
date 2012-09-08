@@ -63,6 +63,10 @@ module TorqueBox
         end
       end
 
+      def archive_name
+        TorqueBox::DeployUtils.normalize_archive_name(ENV['name'] || TorqueBox::DeployUtils.archive_name)
+      end
+
       private
 
       def prefix(config)
@@ -86,8 +90,8 @@ module TorqueBox
           ssh_exec(config, "touch #{config.jboss_home}/standalone/deployments/#{app_name}-knob.yml.dodeploy")
         else
           # todo copy temp file to somewhere
-          File.open("#{config.jboss_home}/standalone/deployments/#{app_name}-knob.yml", "w") {}
-          File.open("#{config.jboss_home}/standalone/deployments/#{app_name}-knob.yml.dodeploy", "w") {}
+          File.open("#{config.jboss_home}/standalone/deployments/#{app_name}-knob.yml", "w") { }
+          File.open("#{config.jboss_home}/standalone/deployments/#{app_name}-knob.yml.dodeploy", "w") { }
         end
       end
 
@@ -135,7 +139,7 @@ module TorqueBox
       def scp_upload(config, local_file, remote_file)
         unless config.local
           Net::SCP.upload!(config.hostname, config.user, local_file, remote_file,
-                           :ssh => {:port => config.port, :keys => [config.key]}
+                           :ssh => { :port => config.port, :keys => [config.key] }
           ) do |ch, name, sent, total|
             print "\rCopying #{name}: #{sent}/#{total}"
           end
@@ -158,7 +162,7 @@ module TorqueBox
     end
 
     def initialize(blk)
-      @config = RemoteConfig.new
+      @config  = RemoteConfig.new
       @configs = []
       instance_eval &blk
     end
@@ -235,10 +239,10 @@ module TorqueBox
     end
 
     def initialize
-      @user = "torquebox"
+      @user           = "torquebox"
       @torquebox_home = "/opt/torquebox"
-      @sudo = false
-      @local = false
+      @sudo           = false
+      @local          = false
     end
   end
 end

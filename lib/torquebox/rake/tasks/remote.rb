@@ -7,13 +7,13 @@ namespace :torquebox do
 
     desc "Upload this application to the remote server as an archive file"
     task :stage => ["torquebox:archive"] do
-      archive_name = TorqueBox::DeployUtils.archive_name
+      archive_name = TorqueBox::RemoteDeployUtils.archive_name
       TorqueBox::RemoteDeployUtils.stage(archive_name)
     end
 
     desc "Execute Ruby commands against the staged archive file"
     task :exec, [:cmd] do |t, args|
-      cmd = args[:cmd]
+      cmd          = args[:cmd]
       archive_name = TorqueBox::DeployUtils.archive_name
       TorqueBox::RemoteDeployUtils.exec_ruby(archive_name, cmd)
     end
