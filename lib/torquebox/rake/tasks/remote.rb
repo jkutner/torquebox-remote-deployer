@@ -6,7 +6,7 @@ namespace :torquebox do
   namespace :remote do
 
     desc "Upload this application to the remote server as an archive file"
-    task :stage => ["torquebox:archive"] do
+    task :stage do
       archive_name = TorqueBox::RemoteDeployUtils.archive_name
       TorqueBox::RemoteDeployUtils.stage(archive_name)
     end
