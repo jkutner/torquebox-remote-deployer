@@ -25,8 +25,20 @@ describe TorqueBox::RemoteDeployUtils do
     context "local" do
       it "stages" do
         ENV["tb_remote_file"] = File.join(File.dirname(__FILE__), "fixtures/local_torquebox_remote.rb")
-        @util.stage("myapp.knob")  # does nothing
+        @util.stage("myapp.knob") # does nothing
       end
+    end
+  end
+
+  describe "archive name" do
+    it "should pick it up from environment variable" do
+      ENV["name"] = "archive-file-to-be-deployed"
+      @util.archive_name.should == "archive-file-to-be-deployed.knob"
+      ENV["name"] = nil
+    end
+
+    it "should pick it up torquebox deploy utils if 'name' environment variable is not set" do
+      @util.archive_name.should == "#{File.basename(Dir.pwd)}.knob"
     end
   end
 
