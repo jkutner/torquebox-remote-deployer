@@ -53,9 +53,10 @@ module TorqueBox
         with_config(archive_file) do |config, app_name|
           unless config.local
             ssh_exec(config, "cd #{config.torquebox_home}/stage/#{app_name}",
-                     "export PATH=$PATH:#{config.torquebox_home}/jruby/bin",
+                     "export PATH=#{config.torquebox_home}/jruby/bin:$PATH",
                      "export RAILS_ENV=#{config.rack_env}",
                      "export RACK_ENV=#{config.rack_env}",
+                     "export JRUBY_OPTS=--#{config.ruby_version}",
                      "#{config.torquebox_home}/jruby/bin/jruby -S #{cmd}")
           else
             # not sure what to do here yet
@@ -80,6 +81,8 @@ module TorqueBox
         environment:
           RACK_ENV: #{config.rack_env}
           RAILS_ENV: #{config.rack_env}
+        ruby:
+          version: #{config.ruby_version}
         YAML
 
         unless config.local
@@ -217,10 +220,14 @@ module TorqueBox
     def rack_env(env)
       @config.rack_env = env
     end
+
+    def ruby_version(version)
+      @config.ruby_version = version
+    end
   end
 
   class RemoteConfig
-    attr_accessor :hostname, :port, :user, :key, :torquebox_home, :sudo, :local
+    attr_accessor :hostname, :port, :user, :key, :torquebox_home, :sudo, :local, :ruby_version
 
     def rack_env=(env)
       @rack_env = env
@@ -236,6 +243,10 @@ module TorqueBox
 
     def jboss_home
       @jboss_home || "#{@torquebox_home}/jboss"
+    end
+
+    def ruby_version
+      @ruby_version == '1.9' ? '1.9' : '1.8'
     end
 
     def initialize
