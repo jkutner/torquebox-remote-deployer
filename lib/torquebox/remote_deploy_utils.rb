@@ -49,14 +49,26 @@ module TorqueBox
         end
       end
 
+      def exec_bash(archive_file, cmd)
+        with_config(archive_file) do |config, app_name|
+          unless config.local
+            ssh_exec(config, "cd #{config.torquebox_home}/stage/#{app_name}",
+                     "export PATH=#{config.jruby_home}/bin:$PATH",
+                     "export RAILS_ENV=#{config.rack_env}",
+                     "export RACK_ENV=#{config.rack_env}",
+                     cmd)
+          end
+        end
+      end
+
       def exec_ruby(archive_file, cmd)
         with_config(archive_file) do |config, app_name|
           unless config.local
             ssh_exec(config, "cd #{config.torquebox_home}/stage/#{app_name}",
-                     "export PATH=$PATH:#{config.torquebox_home}/jruby/bin",
+                     "export PATH=#{config.jruby_home}/bin:$PATH",
                      "export RAILS_ENV=#{config.rack_env}",
                      "export RACK_ENV=#{config.rack_env}",
-                     "#{config.torquebox_home}/jruby/bin/jruby -S #{cmd}")
+                     "jruby -S #{cmd}")
           else
             # not sure what to do here yet
           end
@@ -198,6 +210,10 @@ module TorqueBox
       @config.jboss_home = jbh
     end
 
+    def jruby_home(jrh)
+      @config.jruby_home = jrh
+    end
+
     def sudo(sudo)
       @config.sudo = sudo
     end
@@ -220,7 +236,7 @@ module TorqueBox
   end
 
   class RemoteConfig
-    attr_accessor :hostname, :port, :user, :key, :torquebox_home, :sudo, :local
+    attr_accessor :hostname, :port, :user, :key, :torquebox_home, :sudo, :local, :jruby_home
 
     def rack_env=(env)
       @rack_env = env
@@ -243,6 +259,7 @@ module TorqueBox
       @torquebox_home = "/opt/torquebox"
       @sudo           = false
       @local          = false
+      @jruby_home     = "#{@torquebox_home}/jruby"
     end
   end
 end

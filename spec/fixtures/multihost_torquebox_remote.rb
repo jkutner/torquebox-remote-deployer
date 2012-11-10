@@ -2,6 +2,7 @@ TorqueBox::RemoteDeploy.configure do
   host do
     torquebox_home "/my/tb/dir"
     jboss_home "/my/jboss/dir"
+    jruby_home "/opt/jruby"
     hostname "1.2.3.4"
     port "2222"
     user "torquebox"
