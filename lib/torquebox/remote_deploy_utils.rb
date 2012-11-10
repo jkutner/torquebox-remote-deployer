@@ -49,6 +49,18 @@ module TorqueBox
         end
       end
 
+      def exec_bash(archive_file, cmd)
+        with_config(archive_file) do |config, app_name|
+          unless config.local
+            ssh_exec(config, "cd #{config.torquebox_home}/stage/#{app_name}",
+                     "export PATH=#{config.jruby_home}/bin:$PATH",
+                     "export RAILS_ENV=#{config.rack_env}",
+                     "export RACK_ENV=#{config.rack_env}",
+                     cmd)
+          end
+        end
+      end
+
       def exec_ruby(archive_file, cmd)
         with_config(archive_file) do |config, app_name|
           unless config.local
