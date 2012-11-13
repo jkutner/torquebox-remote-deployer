@@ -53,6 +53,20 @@ After the `exec` tasks are complete, you can deploy the Knob to the TorqueBox se
 
 This task works just like the `torquebox:deploy:archive` task, but remotely.
 
+### Using a local JRuby
+
+If you plan to use a JRuby installation other than the version that comes packaged with torquebox, you can specify it in the configuration like so:
+
+    TorqueBox::RemoteDeploy.configure do
+      torquebox_home "/opt/torquebox"
+      jruby_home "/opt/jruby"
+      hostname "localhost"
+      port "2222"
+      user "vagrant"
+      key "~/.vagrant.d/insecure_private_key"
+      sudo true
+    end
+
 ## Deploying to Multiple Environments
 
 The `torquebox-remote-deployer` gem defaults to production mode, so all the examples shown above will execute with your `production` Bundler group and db config.  But it's most likely that you will want to deploy to a staging or test environment before deploying to production.  In that case, you'll need a config file for each one.  In each config file, you can specify the RACK_ENV or RAILS_ENV like this:

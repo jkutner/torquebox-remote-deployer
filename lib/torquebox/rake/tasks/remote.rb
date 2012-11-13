@@ -5,6 +5,13 @@ require 'torquebox/remote_deploy_utils'
 namespace :torquebox do
   namespace :remote do
 
+    desc "Execute bash commands in the environment"
+    task :bash, [:cmd] do |t, args|
+      cmd = args[:cmd]
+      archive_name = TorqueBox::RemoteDeployUtils.archive_name
+      TorqueBox::RemoteDeployUtils.exec_bash(archive_name, cmd)
+    end
+
     desc "Upload this application to the remote server as an archive file"
     task :stage do
       archive_name = TorqueBox::RemoteDeployUtils.archive_name

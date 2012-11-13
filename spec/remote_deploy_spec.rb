@@ -44,6 +44,10 @@ describe TorqueBox::RemoteDeploy do
       it "has sudo false" do
         subject.config.sudo.should == false
       end
+
+      it "has jruby_home of '/opt/torquebox/jruby'" do
+        subject.config.jruby_home.should == '/opt/torquebox/jruby'
+      end
     end
 
     context "overrides" do
@@ -51,6 +55,7 @@ describe TorqueBox::RemoteDeploy do
         TorqueBox::RemoteDeploy.configure do
           torquebox_home "/my/tb/dir"
           jboss_home "/my/jboss/dir"
+          jruby_home "/opt/jruby"
           hostname "1.2.3.4"
           port "2222"
           user "torquebox"
@@ -90,6 +95,10 @@ describe TorqueBox::RemoteDeploy do
 
       it "has sudo true" do
         subject.config.sudo.should == true
+      end
+
+      it "has jruby_home of '/opt/jruby'" do
+        subject.config.jruby_home.should == "/opt/jruby"
       end
     end
 
