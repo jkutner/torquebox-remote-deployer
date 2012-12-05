@@ -59,6 +59,7 @@ describe TorqueBox::RemoteDeployUtils do
 
         # this isn't really testing the real deal yet
         File.exists?("#{deploy_dir}/myapp-knob.yml").should == true
+        (File.stat("#{deploy_dir}/myapp-knob.yml").mode & 0777).should == 0644
         File.exists?("#{deploy_dir}/myapp-knob.yml.dodeploy").should == true
       end
 
