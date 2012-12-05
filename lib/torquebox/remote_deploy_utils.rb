@@ -92,6 +92,8 @@ module TorqueBox
         environment:
           RACK_ENV: #{config.rack_env}
           RAILS_ENV: #{config.rack_env}
+        web:
+          context: #{config.context}
         YAML
 
         unless config.local
@@ -223,6 +225,10 @@ module TorqueBox
       @config.local = l
     end
 
+    def context(c)
+      @config.context = c
+    end
+
     def host(&block)
       @configs << RemoteDeploy.new(block).config
     end
@@ -237,22 +243,19 @@ module TorqueBox
   end
 
   class RemoteConfig
-    attr_accessor :hostname, :port, :user, :key, :torquebox_home, :sudo, :local, :jruby_home
-
-    def rack_env=(env)
-      @rack_env = env
-    end
+    attr_accessor :hostname, :port, :user, :key, :torquebox_home, :sudo, :local, :jboss_home, :jruby_home, :rack_env, :context
 
     def rack_env
       @rack_env || "production"
     end
 
-    def jboss_home=(jbh)
-      @jboss_home = jbh
-    end
-
     def jboss_home
       @jboss_home || "#{@torquebox_home}/jboss"
+    end
+
+    # web context (start with a slash if they forgot to put it there)
+    def context
+      (@context && @context[0] == '/') ? @context : "/#{@context}"
     end
 
     def initialize

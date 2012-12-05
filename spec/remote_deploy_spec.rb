@@ -48,6 +48,10 @@ describe TorqueBox::RemoteDeploy do
       it "has jruby_home of '/opt/torquebox/jruby'" do
         subject.config.jruby_home.should == '/opt/torquebox/jruby'
       end
+
+      it "has root context" do
+        subject.config.context.should == '/'
+      end
     end
 
     context "overrides" do
@@ -141,6 +145,30 @@ describe TorqueBox::RemoteDeploy do
         else
           fail
         end
+      end
+    end
+
+    context "context with slash" do
+      subject do
+        TorqueBox::RemoteDeploy.configure do
+          context "app"
+        end
+      end
+
+      it "uses context unmodified" do
+        subject.config.context.should == '/app'
+      end
+    end
+
+    context "context without slash" do
+      subject do
+        TorqueBox::RemoteDeploy.configure do
+          context "app"
+        end
+      end
+
+      it "adds slash to context" do
+        subject.config.context.should == '/app'
       end
     end
   end
