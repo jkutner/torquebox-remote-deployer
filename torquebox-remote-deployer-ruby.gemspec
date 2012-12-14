@@ -4,7 +4,6 @@ $:.push File.expand_path("../lib", __FILE__)
 Gem::Specification.new do |s|
   s.name        = "torquebox-remote-deployer-ruby"
   s.version     = "0.1.2.pre2"
-  s.platform    = Gem::Platform::Ruby
   s.authors     = ["Joe Kutner"]
   s.email       = ["jpkutner@gmail.com"]
   s.homepage    = "https://github.com/jkutner/torquebox-remote-deployer"
