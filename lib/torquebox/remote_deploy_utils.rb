@@ -65,10 +65,10 @@ module TorqueBox
         with_config(archive_file) do |config, app_name|
           unless config.local
             ssh_exec(config, "cd #{config.torquebox_home}/stage/#{app_name}",
-                     "export PATH=#{config.jruby_home}/bin:$PATH",
+                     # "export PATH=#{config.jruby_home}/bin:$PATH",
                      "export RAILS_ENV=#{config.rack_env}",
                      "export RACK_ENV=#{config.rack_env}",
-                     "jruby -S #{cmd}")
+                     "#{config.jruby_home}/bin/jruby -S #{cmd}")
           else
             # not sure what to do here yet
           end
@@ -204,6 +204,9 @@ module TorqueBox
     end
 
     def torquebox_home(tbh)
+      if @config.jruby_home == "#{@config.torquebox_home}/jruby"
+        jruby_home("#{tbh}/jruby")
+      end
       @config.torquebox_home = tbh
     end
 

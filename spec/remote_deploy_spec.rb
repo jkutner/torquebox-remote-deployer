@@ -50,6 +50,38 @@ describe TorqueBox::RemoteDeploy do
       end
     end
 
+    context "change to torquebox home" do
+      subject do
+        
+      end
+
+      it "jruby_home should be updated to match torquebox prefix" do
+        object = TorqueBox::RemoteDeploy.configure do
+          torquebox_home "/opt/torquebox/current"
+          hostname "1.2.3.4"
+          port "2222"
+          user "torquebox"
+          key "~/.ssh/id_rsa.pub"
+          sudo true
+        end
+        object.config.jruby_home.should == "/opt/torquebox/current/jruby"
+      end
+
+      it "if jruby_home is changed, then torquebox_home, jruby should not be effected" do
+        object = TorqueBox::RemoteDeploy.configure do
+          torquebox_home "/opt/torquebox/current"
+          jruby_home "~/jruby"
+          hostname "1.2.3.4"
+          port "2222"
+          user "torquebox"
+          key "~/.ssh/id_rsa.pub"
+          sudo true
+        end
+
+        object.config.jruby_home.should == "~/jruby"
+      end
+    end
+
     context "overrides" do
       subject do
         TorqueBox::RemoteDeploy.configure do
